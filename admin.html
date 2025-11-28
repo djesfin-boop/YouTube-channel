@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - YouTube Scraper Pro</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loginForm" class="container login-form">
+        <h1>Admin Login</h1>
+        <input type="password" id="adminPassword" placeholder="Password">
+        <button class="btn-primary" onclick="Admin.login()">Login</button>
+    </div>
+    
+    <div id="adminPanel" class="container" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h1>Admin Panel</h1>
+            <button class="btn-secondary" onclick="Admin.logout()">Logout</button>
+        </div>
+        
+        <div class="admin-grid">
+            <div class="stat-card">
+                <h3>API Quota Used</h3>
+                <div class="value"><span id="quotaUsed">0</span> / <span id="quotaTotal">10000</span></div>
+                <div class="quota-bar" id="quotaBar"></div>
+                <small id="quotaPercent">0%</small>
+            </div>
+            <div class="stat-card">
+                <h3>Cache Stats</h3>
+                <div class="value"><span id="cacheChannels">0</span></div>
+                <small>Channels cached (<span id="cacheSize">0 MB</span>)</small>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3>API Key Settings</h3>
+            <div class="input-group">
+                <label>YouTube API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXX">
+            </div>
+            <p>Status: <span id="apiKeyStatus">inactive</span></p>
+            <button class="btn-primary" id="saveApiKey">Save API Key</button>
+        </div>
+        
+        <div class="settings-section">
+            <h3>User Limits</h3>
+            <div class="input-group">
+                <label>Daily requests per user</label>
+                <input type="number" id="userLimitInput" value="5" min="1" max="100">
+            </div>
+            <button class="btn-primary" id="saveUserLimit">Save Limit</button>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Users</h3>
+            <table>
+                <thead><tr><th>User ID</th><th>Requests</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="usersTable"></tbody>
+            </table>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Cache Management</h3>
+            <button class="btn-secondary" id="clearCache">Clear All Cache</button>
+        </div>
+        
+        <div class="footer">
+            <a href="index.html">Back to App</a>
+        </div>
+    </div>
+    
+    <script src="js/storage.js"></script>
+    <script src="js/cache.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
