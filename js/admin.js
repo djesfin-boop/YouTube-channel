@@ -1,13 +1,14 @@
-// ==========================================
+// ============================================
 // ADMIN.JS - Admin Panel Logic
 // YouTube Channel Scraper Pro 3.0
-// ==========================================
+// ============================================
 
 const Admin = {
     init() {
         if (!this.checkAuth()) return;
         this.bindEvents();
         this.loadDashboard();
+        this.loadApiKeyStatus();
     },
 
     checkAuth() {
@@ -28,134 +29,135 @@ const Admin = {
             sessionStorage.setItem('admin_auth', 'admin');
             this.checkAuth();
             this.loadDashboard();
+            this.loadApiKeyStatus();
         } else {
-            alert('Wrong password');
+            alert('Неверный пароль!');
         }
     },
 
     logout() {
         sessionStorage.removeItem('admin_auth');
-        location.reload();
+        this.checkAuth();
     },
 
-    bindEvents() {
-        document.getElementById('saveApiKey')?.addEventListener('click', () => this.saveApiKey());
-        document.getElementById('saveUserLimit')?.addEventListener('click', () => this.saveUserLimit());
-        document.getElementById('clearCache')?.addEventListener('click', () => this.clearCache());
-    },
-
-    loadDashboard() {
-        const admin = Storage.getAdminData();
-        const quota = admin.dailyQuota;
-        const percent = Math.round((quota.used / quota.total) * 100);
+    loadApiKeyStatus() {
+        const apiKey = localStorage.getItem('youtube_api_key');
+        const statusEl = document.getElementById('apiKeyStatus');
+        const inputEl = document.getElementById('apiKeyInput');
         
-        document.getElementById('quotaUsed').textContent = quota.used;
-        document.getElementById('quotaTotal').textContent = quota.total;
-        document.getElementById('quotaPercent').textContent = percent + '%';
-        document.getElementById('quotaBar').style.width = percent + '%';
-        document.getElementById('quotaBar').className = 'quota-bar ' + this.getQuotaColor(percent);
-        
-        document.getElementById('apiKeyInput').value = admin.apiKey || '';
-        document.getElementById('apiKeyStatus').textContent = admin.apiKeyStatus;
-        document.getElementById('userLimitInput').value = admin.userLimits.default;
-        
-        this.loadUsersTable(admin);
-        this.loadCacheStats();
-    },
-
-    getQuotaColor(percent) {
-        if (percent >= 95) return 'critical';
-        if (percent >= 80) return 'warning';
-        return 'normal';
-    },
-
-    loadUsersTable(admin) {
-        const tbody = document.getElementById('usersTable');
-        if (!tbody) return;
-        const users = Object.entries(admin.users);
-        tbody.innerHTML = users.length ? users.map(([id, u]) => `
-            <tr>
-                <td>${id.substring(0, 15)}...</td>
-                <td>${u.quotaUsed}</td>
-                <td><span class="badge ${u.blocked ? 'blocked' : 'active'}">${u.blocked ? 'Blocked' : 'Active'}</span></td>
-                <td>
-                    <button onclick="Admin.toggleUserBlock('${id}')">${u.blocked ? 'Unblock' : 'Block'}</button>
-                </td>
-            </tr>
-        `).join('') : '<tr><td colspan="4">No users yet</td></tr>';
-    },
-
-    loadCacheStats() {
-        const stats = Cache.getStats();
-        document.getElementById('cacheChannels').textContent = stats.channels;
-        document.getElementById('cacheSize').textContent = stats.sizeMB + ' MB';
+        if (apiKey) {
+            statusEl.textContent = '✅ API ключ сохранён (' + apiKey.substring(0, 10) + '...)';
+            statusEl.style.color = '#4CAF50';
+            inputEl.value = apiKey;
+        } else {
+            statusEl.textContent = '⚠️ API ключ не установлен';
+            statusEl.style.color = '#ff9800';
+        }
     },
 
     saveApiKey() {
-        const key = document.getElementById('apiKeyInput').value.trim();
-        const admin = Storage.getAdminData();
-        admin.apiKey = key;
-        admin.apiKeyStatus = key ? 'active' : 'inactive';
-        admin.apiKeyLastChecked = Date.now();
-        Storage.saveAdminData(admin);
-        this.loadDashboard();
-        alert('API Key saved!');
-    },
-
-    saveUserLimit() {
-        const limit = parseInt(document.getElementById('userLimitInput').value) || 5;
-        const admin = Storage.getAdminData();
-        admin.userLimits.default = limit;
-        Storage.saveAdminData(admin);
-        alert('User limit updated to ' + limit);
-    },
-
-    toggleUserBlock(userId) {
-        const admin = Storage.getAdminData();
-        if (admin.users[userId]) {
-            admin.users[userId].blocked = !admin.users[userId].blocked;
-            Storage.saveAdminData(admin);
-            this.loadDashboard();
+        const apiKey = document.getElementById('apiKeyInput').value.trim();
+        if (!apiKey) {
+            alert('Введите API ключ!');
+            return;
         }
+        if (!apiKey.startsWith('AIza')) {
+            alert('Некорректный формат API ключа. Ключ должен начинаться с AIza');
+            return;
+        }
+        localStorage.setItem('youtube_api_key', apiKey);
+        this.loadApiKeyStatus();
+        alert('✅ API ключ успешно сохранён!');
+    },
+
+    loadDashboard() {
+        const quota = Storage.getQuota();
+        document.getElementById('totalRequests').textContent = quota.used;
+        
+        const cache = Cache.getAll();
+        document.getElementById('cachedChannels').textContent = Object.keys(cache).length;
+        
+        const favorites = Storage.getFavorites();
+        document.getElementById('favoriteChannels').textContent = favorites.length;
+        
+        this.renderCacheList(cache);
+        this.renderFavoritesList(favorites);
+    },
+
+    renderCacheList(cache) {
+        const container = document.getElementById('cacheList');
+        const channels = Object.keys(cache);
+        
+        if (channels.length === 0) {
+            container.innerHTML = '<p>Кэш пуст</p>';
+            return;
+        }
+        
+        container.innerHTML = channels.map(id => {
+            const data = cache[id];
+            return `<div class="cache-item">
+                <span>${data.channelTitle || id}</span>
+                <span>${data.videos?.length || 0} видео</span>
+                <button onclick="Admin.removeFromCache('${id}')">Удалить</button>
+            </div>`;
+        }).join('');
+    },
+
+    renderFavoritesList(favorites) {
+        const container = document.getElementById('favoritesList');
+        
+        if (favorites.length === 0) {
+            container.innerHTML = '<p>Нет избранных</p>';
+            return;
+        }
+        
+        container.innerHTML = favorites.map(fav => {
+            return `<div class="favorite-item">
+                <span>${fav.title}</span>
+                <button onclick="Admin.removeFavorite('${fav.id}')">Удалить</button>
+            </div>`;
+        }).join('');
     },
 
     clearCache() {
-        if (confirm('Clear all cached channels?')) {
+        if (confirm('Очистить весь кэш?')) {
             Cache.clear();
-            this.loadCacheStats();
-            alert('Cache cleared!');
+            this.loadDashboard();
+            alert('Кэш очищен!');
         }
     },
 
-    addToPriority() {
-        const channelId = document.getElementById('priorityChannelId').value.trim();
-        if (!channelId) return;
-        const admin = Storage.getAdminData();
-        if (!admin.cachePriority.includes(channelId)) {
-            admin.cachePriority.push(channelId);
-            Storage.saveAdminData(admin);
-            this.loadPriorityList();
+    removeFromCache(channelId) {
+        Cache.remove(channelId);
+        this.loadDashboard();
+    },
+
+    resetQuota() {
+        if (confirm('Сбросить счётчик запросов?')) {
+            Storage.resetQuota();
+            this.loadDashboard();
+            alert('Счётчик сброшен!');
         }
-        document.getElementById('priorityChannelId').value = '';
     },
 
-    removePriority(channelId) {
-        const admin = Storage.getAdminData();
-        admin.cachePriority = admin.cachePriority.filter(id => id !== channelId);
-        Storage.saveAdminData(admin);
-        this.loadPriorityList();
+    clearFavorites() {
+        if (confirm('Очистить все избранные?')) {
+            localStorage.removeItem('yt_favorites');
+            this.loadDashboard();
+            alert('Избранные очищены!');
+        }
     },
 
-    loadPriorityList() {
-        const admin = Storage.getAdminData();
-        const el = document.getElementById('priorityList');
-        if (!el) return;
-        el.innerHTML = admin.cachePriority.map(id => `
-            <div class="priority-item">
-                <span>${id}</span>
-                <button onclick="Admin.removePriority('${id}')">Remove</button>
-            </div>
-        `).join('') || '<p>No priority channels</p>';
+    removeFavorite(id) {
+        const favorites = Storage.getFavorites().filter(f => f.id !== id);
+        localStorage.setItem('yt_favorites', JSON.stringify(favorites));
+        this.loadDashboard();
+    },
+
+    bindEvents() {
+        document.getElementById('adminPassword')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.login();
+        });
     }
 };
 
