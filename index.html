@@ -60,6 +60,7 @@
         }
         .btn-primary:hover { background: var(--color-primary-hover); transform: translateY(-2px);}
         .btn-primary:active { transform: translateY(0);}
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-secondary {
             background: var(--color-surface);
             color: var(--color-primary); border: 1px solid var(--color-primary);
@@ -70,9 +71,7 @@
         .status-message.show { display: block; }
         .status-message.success { background: rgba(0, 176, 80, 0.2); border: 1px solid #00b050; color: #00b050; }
         .status-message.error   { background: rgba(255, 68, 68, 0.2); border: 1px solid #ff4444; color: #ff4444;}
-        .status-message.loading { background: rgba(255, 0, 0, 0.1); border: 1px solid var(--color-primary); color: var(--color-primary);}
-        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,0,0,0.3); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle;}
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-message.info { background: rgba(255, 0, 0, 0.1); border: 1px solid var(--color-primary); color: var(--color-primary);}
         .videos-list { max-height: 500px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 4px; margin-bottom: 15px;}
         .video-item { padding: 12px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; gap: 10px;}
         .video-item:last-child { border-bottom: none;}
@@ -80,7 +79,6 @@
         .video-title { color: var(--color-primary); text-decoration: none; font-weight: 500; word-break: break-word; display: block; margin-bottom: 4px;}
         .video-title:hover {text-decoration: underline;}
         .video-meta { color: var(--color-text-secondary); font-size: 0.85em;}
-        .video-actions { display: flex; gap: 5px; flex-shrink: 0;}
         .btn-copy {
             padding: 6px 12px; background: var(--color-border); color: var(--color-text); border: none; border-radius: 3px; cursor: pointer; font-size: 0.85em;
         }
@@ -103,19 +101,11 @@
             font-weight: 500;
         }
         .license-info { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-border); font-size: 0.8em;}
-        .code-example {
-            background: var(--color-bg); border: 1px solid var(--color-border); padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.85em; overflow-x: auto; margin: 10px 0; line-height: 1.4;
-        }
         .theme-toggle { position: fixed; top: 20px; right: 20px; background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; z-index: 1000;}
         .theme-toggle:hover { background: var(--color-primary); }
         .controls-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;}
         @media (max-width: 768px) { .controls-row { grid-template-columns: 1fr;}}
         .search-box { width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); border-radius: 4px; font-size: 0.95em;}
-        .sort-select { width: 100%;}
-        .history-list { max-height: 200px; overflow-y: auto; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: 10px;}
-        .history-item { padding: 8px; cursor: pointer; border-bottom: 1px solid var(--color-border); font-size: 0.9em; color: var(--color-text-secondary);}
-        .history-item:hover { background: var(--color-surface); color: var(--color-primary);}
-        .history-item:last-child { border-bottom: none;}
         [data-theme="light"] {
             --color-primary: #0066cc;
             --color-primary-hover: #0052a3;
@@ -192,12 +182,11 @@
                         <option value="json">JSON</option>
                         <option value="csv">CSV</option>
                         <option value="txt">Text (список ссылок)</option>
-                        <option value="html">HTML таблица</option>
                     </select>
                 </div>
                 <div class="status-message" id="statusMessage"></div>
                 <div class="button-group">
-                    <button class="btn-primary" onclick="fetchVideos()">
+                    <button class="btn-primary" id="loadBtn" onclick="fetchVideos()">
                         <span id="btnText">🎬 Загрузить</span>
                     </button>
                     <button class="btn-secondary btn-small" onclick="showApiHelp()">?</button>
@@ -218,7 +207,7 @@
                 </ol>
                 <div style="background: var(--color-bg); padding: 15px; border-radius: 4px; margin-top: 15px;">
                     <p style="color: var(--color-text-secondary); margin-bottom: 8px;"><strong>Пример Channel ID:</strong></p>
-                    <e style="color: var(--color-primary);">UCIFfUtMRKPG8sGk6d6a_lzQ</code>
+                    de style="color: var(--color-primary);">UCIFfUtMRKPG8sGk6d6a_lzQ</code>
                 </div>
             </div>
         </div>
@@ -239,7 +228,7 @@
             <div id="videosContainer" style="display: none;">
                 <div class="controls-row">
                     <input type="text" id="searchInput" class="search-box" placeholder="🔍 Поиск по названию видео..." onkeyup="filterAndSortVideos()">
-                    <select id="sortSelect" class="search-box sort-select" onchange="filterAndSortVideos()">
+                    <select id="sortSelect" class="search-box" onchange="filterAndSortVideos()">
                         <option value="newest">Новые сначала</option>
                         <option value="oldest">Старые сначала</option>
                         <option value="title-asc">По названию (А-Я)</option>
@@ -275,17 +264,18 @@
             </div>
         </footer>
     </div>
+
     <script>
-    // Базовый URL backend
+    // ========== КОНФИГУРАЦИЯ ==========
     const BACKEND_URL = '/api/videos'; // или https://your-vercel-domain/api/videos
     const QUOTA_LIMIT = 5;
+    
+    // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
     let allVideos = [];
     let filteredVideos = [];
     let channelData = {};
-    let searchHistory = [];
 
-    // Квота
-    function initQuota() { displayQuotaInfo(); checkAndResetQuota(); }
+    // ========== КВОТА ==========
     function checkAndResetQuota() {
         const today = new Date().toISOString().split('T')[0];
         const lastQuotaDate = localStorage.getItem('quota_date');
@@ -294,82 +284,198 @@
             localStorage.setItem('quota_used', '0');
         }
     }
+
     function getQuotaInfo() {
         const used = parseInt(localStorage.getItem('quota_used') || 0);
         const remaining = QUOTA_LIMIT - used;
         const percent = Math.round((used / QUOTA_LIMIT) * 100);
         return { used, remaining, percent };
     }
+
     function displayQuotaInfo() {
         const { used, remaining, percent } = getQuotaInfo();
         document.getElementById('quotaFill').style.width = percent + '%';
         document.getElementById('quotaPercent').textContent = percent + '%';
         document.getElementById('quotaText').textContent = `${used} / ${QUOTA_LIMIT} запросов`;
+        
         const quotaFill = document.getElementById('quotaFill');
         if (percent < 60) quotaFill.style.background = 'linear-gradient(90deg, #00b050 0%, #00b050 100%)';
         else if (percent < 80) quotaFill.style.background = 'linear-gradient(90deg, #ffc000 0%, #ffc000 100%)';
         else quotaFill.style.background = 'linear-gradient(90deg, #ff4444 0%, #ff4444 100%)';
-        const button = document.querySelector('.btn-primary');
-        if (remaining <= 0) { button.disabled = true; button.textContent = '❌ Лимит достигнут'; }
-        else if (remaining === 1) { button.style.borderColor = '#ff4444'; button.textContent = `⚠️ Осталось ${remaining} запрос`; }
-        else { button.disabled = false; button.textContent = `🎬 Загрузить (${remaining} осталось)`;}
+        
+        const button = document.getElementById('loadBtn');
+        if (remaining <= 0) { 
+            button.disabled = true; 
+            button.textContent = '❌ Лимит достигнут'; 
+        }
+        else if (remaining === 1) { 
+            button.style.borderColor = '#ff4444'; 
+            button.textContent = `⚠️ Осталось ${remaining} запрос`; 
+        }
+        else { 
+            button.disabled = false; 
+            button.textContent = `🎬 Загрузить (${remaining} осталось)`;
+        }
     }
+
     function incrementQuota() {
         const used = parseInt(localStorage.getItem('quota_used') || 0);
         localStorage.setItem('quota_used', (used + 1).toString());
         displayQuotaInfo();
     }
 
+    // ========== ИЗВЛЕЧЕНИЕ CHANNEL ID ==========
     function extractChannelId(input) {
-    // Уже Channel ID?
-    if (input.startsWith('UC') && input.length === 24) return input;
-    
-    // youtube.com/@username
-    if (input.includes('youtube.com/@')) {
-        return input.split('@')[1].split('/')[0].split('?')[0];
+        // Уже Channel ID?
+        if (input.startsWith('UC') && input.length === 24) return input;
+        
+        // youtube.com/@username
+        if (input.includes('youtube.com/@')) {
+            return input.split('@')[1].split('/')[0].split('?')[0];
+        }
+        
+        // youtube.com/c/username
+        if (input.includes('youtube.com/c/')) {
+            return input.split('/c/')[1].split('/')[0].split('?')[0];
+        }
+        
+        // youtube.com/channel/UC...
+        if (input.includes('youtube.com/channel/')) {
+            return input.split('/channel/')[1].split('/')[0].split('?')[0];
+        }
+        
+        return null;
     }
-    
-    // youtube.com/c/username
-    if (input.includes('youtube.com/c/')) {
-        return input.split('/c/')[1].split('/')[0].split('?')[0];
-    }
-    
-    // youtube.com/channel/UC...
-    if (input.includes('youtube.com/channel/')) {
-        return input.split('/channel/')[1].split('/')[0].split('?')[0];
-    }
-    
-    return null;
-}
 
-    function toggleTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.querySelector('.theme-toggle').textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    }
-    function initTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    }
-    function loadSearchHistory() {
-        const saved = localStorage.getItem('searchHistory');
-        searchHistory = saved ? JSON.parse(saved) : [];
-    }
-    function saveSearchHistory(channelId) {
-        if (!searchHistory.includes(channelId)) {
-            searchHistory.unshift(channelId);
-            if (searchHistory.length > 5) searchHistory.pop();
-            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+    // ========== ЗАГРУЗКА ВИДЕО ==========
+    async function fetchVideos() {
+        const quota = getQuotaInfo();
+        if (quota.remaining <= 0) {
+            showStatus('❌ Лимит запросов исчерпан. Приходите завтра!', 'error');
+            return;
+        }
+        
+        const channelInput = document.getElementById('channelId').value.trim();
+        if (!channelInput) {
+            showStatus('❌ Заполните Channel ID или URL', 'error');
+            return;
+        }
+        
+        try {
+            const channelId = extractChannelId(channelInput);
+            if (!channelId) {
+                showStatus('❌ Неверный Channel ID или URL', 'error');
+                return;
+            }
+            
+            showStatus('🔄 Загрузка видео...', 'info');
+            document.getElementById('loadBtn').disabled = true;
+            
+            // ✅ ВЫЗЫВАЕМ BACKEND, А НЕ YOUTUBE API!
+            const response = await fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channelId: channelId })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Ошибка загрузки');
+            }
+            
+            const data = await response.json();
+            allVideos = data.videos || [];
+            channelData = data.channel || {};
+            
+            incrementQuota();
+            displayResults();
+            showStatus(`✅ Загружено ${allVideos.length} видео!`, 'success');
+            
+        } catch (error) {
+            showStatus(`❌ Ошибка: ${error.message}`, 'error');
+        } finally {
+            document.getElementById('loadBtn').disabled = false;
         }
     }
+
+    // ========== ПОКАЗ СТАТУС-СООБЩЕНИЯ ==========
+    function showStatus(message, type = 'info') {
+        const el = document.getElementById('statusMessage');
+        if (!el) return;
+        
+        el.className = `status-message show ${type}`;
+        el.textContent = message;
+        
+        // Автоскрыть через 3 сек для успеха
+        if (type === 'success') {
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+    }
+
+    // ========== ПОКАЗ РЕЗУЛЬТАТОВ ==========
+    function displayResults() {
+        const statsContainer = document.getElementById('statsContainer');
+        const videosContainer = document.getElementById('videosContainer');
+        const noResults = document.getElementById('noResults');
+        
+        if (!allVideos || allVideos.length === 0) {
+            statsContainer.style.display = 'none';
+            videosContainer.style.display = 'none';
+            noResults.style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('totalVideos').textContent = allVideos.length;
+        document.getElementById('channelName').textContent = channelData.name || '-';
+        
+        statsContainer.style.display = 'grid';
+        videosContainer.style.display = 'block';
+        noResults.style.display = 'none';
+        
+        filterAndSortVideos();
+    }
+
+    // ========== ЗАЩИТА ОТ XSS ==========
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // ========== ОТОБРАЖЕНИЕ ВИДЕО ==========
+    function displayFilteredResults() {
+        const videosList = document.getElementById('videosList');
+        videosList.innerHTML = '';
+        document.getElementById('videoCount').textContent = `${filteredVideos.length}/${allVideos.length}`;
+        
+        if (filteredVideos.length === 0) {
+            videosList.innerHTML = '<p style="color: var(--color-text-secondary); padding: 20px;">Видео не найдены</p>';
+            return;
+        }
+        
+        videosList.innerHTML = filteredVideos.map((v, i) => `
+            <div class="video-item">
+                <div class="video-info">
+                    <a href="${v.url}" target="_blank" class="video-title">${i + 1}. ${escapeHtml(v.title)}</a>
+                    <div class="video-meta">${new Date(v.publishedAt).toLocaleDateString('ru-RU')} • ${v.id}</div>
+                </div>
+                <button class="btn-copy" onclick="copyToClipboard('${v.url}')">📋 Копировать</button>
+            </div>
+        `).join('');
+    }
+
+    // ========== ФИЛЬТРАЦИЯ И СОРТИРОВКА ==========
     function filterAndSortVideos() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const sortType = document.getElementById('sortSelect').value;
+        
         filteredVideos = allVideos.filter(video => video.title.toLowerCase().includes(searchTerm));
+        
         filteredVideos.sort((a, b) => {
             switch(sortType) {
                 case 'newest': return new Date(b.publishedAt) - new Date(a.publishedAt);
@@ -379,3 +485,117 @@
                 default: return 0;
             }
         });
+        
+        displayFilteredResults();
+    }
+
+    // ========== СБРОС ФИЛЬТРОВ ==========
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('sortSelect').value = 'newest';
+        filterAndSortVideos();
+    }
+
+    // ========== ЭКСПОРТ ДАННЫХ ==========
+    function exportData(format) {
+        if (!allVideos || allVideos.length === 0) {
+            showStatus('❌ Нет данных для экспорта', 'error');
+            return;
+        }
+        
+        let content, filename, type;
+        
+        switch(format) {
+            case 'json':
+                content = JSON.stringify({
+                    channel: channelData,
+                    videos: allVideos,
+                    exportDate: new Date().toISOString()
+                }, null, 2);
+                filename = 'youtube-videos.json';
+                type = 'application/json';
+                break;
+            
+            case 'csv':
+                content = 'Номер,Название,URL,Дата,ID\n';
+                allVideos.forEach((v, i) => {
+                    content += `"${i + 1}","${v.title.replace(/"/g, '""')}","${v.url}","${v.publishedAt}","${v.id}"\n`;
+                });
+                filename = 'youtube-videos.csv';
+                type = 'text/csv';
+                break;
+            
+            case 'txt':
+                content = `Канал: ${channelData.name}\n`;
+                content += `Видео: ${allVideos.length}\n`;
+                content += `Дата: ${new Date().toLocaleString('ru-RU')}\n\n`;
+                allVideos.forEach((v, i) => {
+                    content += `${i + 1}. ${v.title}\n${v.url}\n${v.publishedAt}\n\n`;
+                });
+                filename = 'youtube-videos.txt';
+                type = 'text/plain';
+                break;
+            
+            default: return;
+        }
+        
+        const blob = new Blob([content], { type });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showStatus(`✅ Файл ${filename} скачан!`, 'success');
+    }
+
+    // ========== КОПИРОВАНИЕ ВСЕХ ССЫЛОК ==========
+    function copyAllLinks() {
+        if (!allVideos || allVideos.length === 0) return;
+        
+        const links = allVideos.map((v, i) => `${i + 1}. ${v.title}\n${v.url}`).join('\n\n');
+        navigator.clipboard.writeText(links).then(() => {
+            showStatus('✅ Ссылки скопированы в буфер!', 'success');
+        });
+    }
+
+    // ========== КОПИРОВАНИЕ ОДНОЙ ССЫЛКИ ==========
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showStatus('✅ Скопировано!', 'success');
+        });
+    }
+
+    // ========== СПРАВКА О ПРИЛОЖЕНИИ ==========
+    function showApiHelp() {
+        alert(`ℹ️ О ПРИЛОЖЕНИИ:\n\n🔐 БЕЗОПАСНОСТЬ: API ключ хранится на сервере (не видим в браузере)\n\n📊 КВОТЫ:\n• 5 запросов в день на пользователя\n• 10,000 единиц в день (глобальный лимит)\n• Сброс квоты в 00:00 MSK\n\n⚠️ ЛИЦЕНЗИЯ:\n• © 2025 YouTube Channel Scraper Pro\n• Авторское произведение\n• Бесплатное распространение для группы\n• При коммерциализации требуется согласование`);
+    }
+
+    // ========== СМЕНА ТЕМЫ ==========
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        document.querySelector('.theme-toggle').textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        checkAndResetQuota();
+        displayQuotaInfo();
+    });
+    </script>
+</body>
+</html>
