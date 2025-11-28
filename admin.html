@@ -19,6 +19,14 @@
         <a href="index.html" class="btn-link">Вернуться на главную</a>
 
         <div class="admin-section">
+            <h2>YouTube API ключ</h2>
+            <p>Введите ваш API ключ для работы с YouTube Data API v3</p>
+            <input type="password" id="apiKeyInput" placeholder="AIzaSy..." style="width:100%;padding:10px;margin:10px 0;">
+            <button class="btn-primary" onclick="Admin.saveApiKey()">Сохранить ключ</button>
+            <p id="apiKeyStatus" style="color:#888;margin-top:10px;"></p>
+        </div>
+
+        <div class="admin-section">
             <h2>Статистика</h2>
             <div class="stats-grid">
                 <div class="stat-card">
