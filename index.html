@@ -3,62 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Экспортер Видео Pro</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>YouTube Channel Scraper Pro</title>
+    <style>
+        :root {
+            --color-primary: #ff0000;
+            --color-primary-hover: #cc0000;
+            --color-bg: #0f0f0f;
+            --color-surface: #212121;
+            --color-text: #ffffff;
+            --color-text-secondary: #aaaaaa;
+            --color-border: #303030;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-bg); color: var(--color-text);
+            padding: 20px; min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            text-align: center; margin-bottom: 40px;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 20px;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; color: var(--color-primary);}
+        .subtitle { color: var(--color-text-secondary); font-size: 1.1em;}
+        .main-section {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;
+        }
+        @media (max-width: 768px) {.main-section {grid-template-columns: 1fr;}}
+        .card {
+            background: var(--color-surface); border: 1px solid var(--color-border);
+            border-radius: 8px; padding: 25px;
+        }
+        .card h2 { font-size: 1.3em; margin-bottom: 20px; color: var(--color-primary);}
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--color-text);}
+        input, textarea, select {
+            width: 100%; padding: 10px 12px; border: 1px solid var(--color-border);
+            background: var(--color-bg); color: var(--color-text); border-radius: 4px;
+            font-family: inherit; font-size: 1em;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        }
+        textarea { resize: vertical; min-height: 100px; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        button {
+            padding: 12px 24px; border: none; border-radius: 4px; font-size: 1em;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--color-primary); color: white; flex: 1; min-width: 120px;
+        }
+        .btn-primary:hover { background: var(--color-primary-hover); transform: translateY(-2px);}
+        .btn-primary:active { transform: translateY(0);}
+        .btn-secondary {
+            background: var(--color-surface);
+            color: var(--color-primary); border: 1px solid var(--color-primary);
+        }
+        .btn-secondary:hover { background: rgba(255, 0, 0, 0.1); }
+        .btn-small { padding: 8px 16px; font-size: 0.9em;}
+        .status-message { padding: 15px; border-radius: 4px; margin-bottom: 15px; display: none;}
+        .status-message.show { display: block; }
+        .status-message.success { background: rgba(0, 176, 80, 0.2); border: 1px solid #00b050; color: #00b050; }
+        .status-message.error   { background: rgba(255, 68, 68, 0.2); border: 1px solid #ff4444; color: #ff4444;}
+        .status-message.loading { background: rgba(255, 0, 0, 0.1); border: 1px solid var(--color-primary); color: var(--color-primary);}
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,0,0,0.3); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle;}
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .videos-list { max-height: 500px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 4px; margin-bottom: 15px;}
+        .video-item { padding: 12px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; gap: 10px;}
+        .video-item:last-child { border-bottom: none;}
+        .video-info { flex: 1; min-width: 0;}
+        .video-title { color: var(--color-primary); text-decoration: none; font-weight: 500; word-break: break-word; display: block; margin-bottom: 4px;}
+        .video-title:hover {text-decoration: underline;}
+        .video-meta { color: var(--color-text-secondary); font-size: 0.85em;}
+        .video-actions { display: flex; gap: 5px; flex-shrink: 0;}
+        .btn-copy {
+            padding: 6px 12px; background: var(--color-border); color: var(--color-text); border: none; border-radius: 3px; cursor: pointer; font-size: 0.85em;
+        }
+        .btn-copy:hover { background: var(--color-primary);}
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;}
+        .stat-box { background: var(--color-bg); border: 1px solid var(--color-border); padding: 15px; border-radius: 4px; text-align: center;}
+        .stat-number { font-size: 2em; font-weight: bold; color: var(--color-primary); margin-bottom: 5px;}
+        .stat-label { color: var(--color-text-secondary); font-size: 0.9em;}
+        .export-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px;}
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+            font-size: 0.85em;
+        }
+        .copyright {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .license-info { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--color-border); font-size: 0.8em;}
+        .code-example {
+            background: var(--color-bg); border: 1px solid var(--color-border); padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.85em; overflow-x: auto; margin: 10px 0; line-height: 1.4;
+        }
+        .theme-toggle { position: fixed; top: 20px; right: 20px; background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; z-index: 1000;}
+        .theme-toggle:hover { background: var(--color-primary); }
+        .controls-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;}
+        @media (max-width: 768px) { .controls-row { grid-template-columns: 1fr;}}
+        .search-box { width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); border-radius: 4px; font-size: 0.95em;}
+        .sort-select { width: 100%;}
+        .history-list { max-height: 200px; overflow-y: auto; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px; padding: 10px;}
+        .history-item { padding: 8px; cursor: pointer; border-bottom: 1px solid var(--color-border); font-size: 0.9em; color: var(--color-text-secondary);}
+        .history-item:hover { background: var(--color-surface); color: var(--color-primary);}
+        .history-item:last-child { border-bottom: none;}
+        [data-theme="light"] {
+            --color-primary: #0066cc;
+            --color-primary-hover: #0052a3;
+            --color-bg: #ffffff;
+            --color-surface: #f5f5f5;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #666666;
+            --color-border: #cccccc;
+        }
+
+        /* ===== КВОТА ===== */
+        .quota-container {
+            background: var(--color-surface); border: 1px solid var(--color-border);
+            border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;
+        }
+        .quota-label { font-size: 0.9em; color: var(--color-text-secondary); margin-bottom: 8px; }
+        .quota-bar { width: 100%; height: 24px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 4px; overflow: hidden; margin-bottom: 10px;}
+        .quota-fill {
+            height: 100%; background: linear-gradient(90deg, #00b050 0%, #ffc000 70%, #ff4444 100%);
+            transition: width 0.3s ease; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8em; color: white; font-weight: bold;
+        }
+        .quota-text { font-size: 1em; color: var(--color-text); margin-bottom: 5px; }
+        .quota-reset { font-size: 0.85em; color: var(--color-text-secondary); }
+
+        .license-banner {
+            background: rgba(255, 100, 0, 0.1); border: 1px solid var(--color-primary);
+            border-radius: 8px; padding: 15px; margin-bottom: 20px;
+            font-size: 0.85em; color: var(--color-text-secondary); line-height: 1.6;
+        }
+        .license-banner strong { color: var(--color-text);}
+    </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
     <div class="container">
-        <h1>YouTube Экспортер Видео Pro</h1>
-        <p class="subtitle">Экспортируйте все видео с любого YouTube канала</p>
-        
-        <div class="quota-banner" id="quotaBanner">
-            <div id="quotaDisplay">Загрузка...</div>
-            <div class="quota-bar-container"><div class="quota-bar-fill" id="quotaBar"></div></div>
+        <header>
+            <h1>🎬 YouTube Channel Scraper Pro</h1>
+            <p class="subtitle">Получи полный список видео любого YouTube канала с поиском и сортировкой</p>
+        </header>
+
+        <!-- КВОТА ПОЛЬЗОВАТЕЛЯ -->
+        <div class="quota-container" id="quotaContainer">
+            <div class="quota-label">📊 МОЯ КВОТА НА СЕГОДНЯ</div>
+            <div class="quota-bar">
+                <div class="quota-fill" id="quotaFill" style="width: 0%">
+                    <span id="quotaPercent">0%</span>
+                </div>
+            </div>
+            <div class="quota-text" id="quotaText">0 / 5 запросов</div>
+            <div class="quota-reset" id="quotaReset">Сброс в 00:00 MSK</div>
         </div>
 
-        <div class="info-box">
-            <h3>Как это работает:</h3>
-            <ol>
-                <li>Введите URL или ID YouTube канала</li>
-                <li>Нажмите "Загрузить видео" для получения списка видео</li>
-                <li>Скачайте результаты в формате JSON или CSV</li>
-            </ol>
-            <p class="note">Ограничение: 5 запросов в день. Счётчик сбрасывается в полночь.</p>
+        <!-- ЛИЦЕНЗИОННОЕ УВЕДОМЛЕНИЕ -->
+        <div class="license-banner">
+            <strong>⚠️ ВНИМАНИЕ:</strong><br>
+            © 2025 YouTube Channel Scraper Pro. Авторское произведение.<br>
+            <strong>Использование:</strong> Бесплатное распространение для группы из 20 участников.<br>
+            <strong>Ограничения:</strong> 5 запросов/день на пользователя. Глобальный лимит 10,000 единиц/день.<br>
+            <strong>Коммерциализация:</strong> Требует согласования с автором и расширения лицензии.
         </div>
 
-        <div class="input-section">
-            <label for="channelInput">URL или ID канала:</label>
-            <input type="text" id="channelInput" placeholder="Например: @MrBeast или UCX6OQ3DkcsbYNE6H8uQQuVA">
-            <button id="loadBtn" onclick="loadVideos()">Загрузить видео</button>
-        </div>
-
-        <div id="status" class="status"></div>
-
-        <div id="results" class="results-section" style="display:none;">
-            <h2>Результаты <span id="videoCount"></span></h2>
-            
-            <div class="export-buttons">
-                <button onclick="downloadJSON()">Скачать JSON</button>
-                <button onclick="downloadCSV()">Скачать CSV</button>
-                <button onclick="addToFavorites()">Добавить в избранное</button>
+        <div class="main-section">
+            <!-- Левая колонка: Ввод -->
+            <div class="card">
+                <h2>📥 Ввод данных</h2>
+                <div class="form-group">
+                    <label for="channelId">Channel ID или URL *</label>
+                    <input type="text" id="channelId" placeholder="UCIFfUtMRKPG8sGk6d6a_lzQ или https://youtube.com/channel/...">
+                </div>
+                <div class="form-group">
+                    <label for="format">Формат вывода</label>
+                    <select id="format">
+                        <option value="json">JSON</option>
+                        <option value="csv">CSV</option>
+                        <option value="txt">Text (список ссылок)</option>
+                        <option value="html">HTML таблица</option>
+                    </select>
+                </div>
+                <div class="status-message" id="statusMessage"></div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="fetchVideos()">
+                        <span id="btnText">🎬 Загрузить</span>
+                    </button>
+                    <button class="btn-secondary btn-small" onclick="showApiHelp()">?</button>
+                </div>
             </div>
 
-            <div class="video-list" id="videoList"></div>
+            <!-- Правая колонка: Пример -->
+            <div class="card">
+                <h2>ℹ️ Как это работает</h2>
+                <p style="margin-bottom: 15px; color: var(--color-text-secondary);">
+                    Приложение использует YouTube Data API v3 для получения списка всех видео с канала. Ваш API ключ находится только на сервере.
+                </p>
+                <h3 style="color: var(--color-text); font-size: 1em; margin-bottom: 10px;">Шаги:</h3>
+                <ol style="color: var(--color-text-secondary); line-height: 1.8; margin-left: 20px;">
+                    <li>Вставь Channel ID или URL канала</li>
+                    <li>Нажми «Загрузить» (лимит 5/день)</li>
+                    <li>Выбери формат — скачай результат</li>
+                </ol>
+                <div style="background: var(--color-bg); padding: 15px; border-radius: 4px; margin-top: 15px;">
+                    <p style="color: var(--color-text-secondary); margin-bottom: 8px;"><strong>Пример Channel ID:</strong></p>
+                    <e style="color: var(--color-primary);">UCIFfUtMRKPG8sGk6d6a_lzQ</code>
+                </div>
+            </div>
         </div>
 
-        <div class="favorites-section" id="favoritesSection">
-            <h2>Избранные каналы</h2>
-            <div id="favoritesList"></div>
+        <!-- Результаты -->
+        <div class="card">
+            <h2>📊 Результаты</h2>
+            <div class="stats" id="statsContainer" style="display: none;">
+                <div class="stat-box">
+                    <div class="stat-number" id="totalVideos">0</div>
+                    <div class="stat-label">Всего видео</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="channelName">-</div>
+                    <div class="stat-label">Название канала</div>
+                </div>
+            </div>
+            <div id="videosContainer" style="display: none;">
+                <div class="controls-row">
+                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Поиск по названию видео..." onkeyup="filterAndSortVideos()">
+                    <select id="sortSelect" class="search-box sort-select" onchange="filterAndSortVideos()">
+                        <option value="newest">Новые сначала</option>
+                        <option value="oldest">Старые сначала</option>
+                        <option value="title-asc">По названию (А-Я)</option>
+                        <option value="title-desc">По названию (Я-А)</option>
+                    </select>
+                    <button class="btn-primary" onclick="clearFilters()" style="min-width: auto;">🔄 Сброс</button>
+                </div>
+                <h3 style="margin-bottom: 15px; color: var(--color-text);">
+                    Видео на канале: <span id="videoCount"></span>
+                </h3>
+                <div class="videos-list" id="videosList"></div>
+                <div class="export-buttons">
+                    <button class="btn-primary" onclick="exportData('json')">📥 JSON</button>
+                    <button class="btn-primary" onclick="exportData('csv')">📥 CSV</button>
+                    <button class="btn-primary" onclick="exportData('txt')">📥 TXT</button>
+                    <button class="btn-secondary" onclick="copyAllLinks()">📋 Копировать ссылки</button>
+                </div>
+            </div>
+            <div id="noResults" style="text-align: center; padding: 40px; color: var(--color-text-secondary);">
+                <p>Результаты появятся здесь после загрузки</p>
+            </div>
         </div>
 
-        <footer>
-            <p>YouTube Экспортер Видео Pro 3.0</p>
-            <a href="admin.html">Панель администратора</a>
+        <footer class="footer">
+            <div class="copyright">
+                © 2025 YouTube Channel Scraper Pro v3.0 | Все права защищены
+            </div>
+            <p style="margin-top: 10px; font-size: 0.8em;">
+                🔐 API ключ защищен | 📊 Квота: 5 запросов/день | 🌙 Dark/Light режимы
+            </p>
+            <div class="license-info">
+                <p>⚠️ ЛИЦЕНЗИЯ: Авторское произведение. Бесплатное распространение. При коммерциализации требуется согласование.</p>
+            </div>
         </footer>
     </div>
+    <script>
+    // Базовый URL backend
+    const BACKEND_URL = '/api/videos'; // или https://your-vercel-domain/api/videos
+    const QUOTA_LIMIT = 5;
+    let allVideos = [];
+    let filteredVideos = [];
+    let channelData = {};
+    let searchHistory = [];
 
-    <script src="js/storage.js"></script>
-    <script src="js/cache.js"></script>
-    <script src="js/app.js"></script>
-</body>
-</html>
+    // Квота
+    function initQuota() { displayQuotaInfo(); checkAndResetQuota(); }
+    function checkAndResetQuota() {
+        const today = new Date().toISOString().split('T')[0];
+        const lastQuotaDate = localStorage.getItem('quota_date');
+        if (lastQuotaDate !== today) {
+            localStorage.setItem('quota_date', today);
+            localStorage.setItem('quota_used', '0');
+        }
+    }
+    function getQuotaInfo() {
+        const used = parseInt(localStorage.getItem('quota_used') || 0);
+        const remaining = QUOTA_LIMIT - used;
+        const percent = Math.round((used / QUOTA_LIMIT) * 100);
+        return { used, remaining, percent };
+    }
+    function displayQuotaInfo() {
+        const { used, remaining, percent } = getQuotaInfo();
+        document.getElementById('quotaFill').style.width = percent + '%';
+        document.getElementById('quotaPercent').textContent = percent + '%';
+        document.getElementById('quotaText').textContent = `${used} / ${QUOTA_LIMIT} запросов`;
+        const quotaFill = document.getElementById('quotaFill');
+        if (percent < 60) quotaFill.style.background = 'linear-gradient(90deg, #00b050 0%, #00b050 100%)';
+        else if (percent < 80) quotaFill.style.background = 'linear-gradient(90deg, #ffc000 0%, #ffc000 100%)';
+        else quotaFill.style.background = 'linear-gradient(90deg, #ff4444 0%, #ff4444 100%)';
+        const button = document.querySelector('.btn-primary');
+        if (remaining <= 0) { button.disabled = true; button.textContent = '❌ Лимит достигнут'; }
+        else if (remaining === 1) { button.style.borderColor = '#ff4444'; button.textContent = `⚠️ Осталось ${remaining} запрос`; }
+        else { button.disabled = false; button.textContent = `🎬 Загрузить (${remaining} осталось)`;}
+    }
+    function incrementQuota() {
+        const used = parseInt(localStorage.getItem('quota_used') || 0);
+        localStorage.setItem('quota_used', (used + 1).toString());
+        displayQuotaInfo();
+    }
+
+    function extractChannelId(input) {
+        const urlMatch = input.match(/(?:youtube\\.com\\/channel\\/|youtu\\.be\\/)([a-zA-Z0-9_-]+)/);
+        if (urlMatch) return urlMatch[1];
+        if (/^UC[a-zA-Z0-9_-]{22}$/.test(input)) return input;
+        return null;
+    }
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        document.querySelector('.theme-toggle').textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+    function loadSearchHistory() {
+        const saved = localStorage.getItem('searchHistory');
+        searchHistory = saved ? JSON.parse(saved) : [];
+    }
+    function saveSearchHistory(channelId) {
+        if (!searchHistory.includes(channelId)) {
+            searchHistory.unshift(channelId);
+            if (searchHistory.length > 5) searchHistory.pop();
+            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        }
+    }
+    function filterAndSortVideos() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const sortType = document.getElementById('sortSelect').value;
+        filteredVideos = allVideos.filter(video => video.title.toLowerCase().includes(searchTerm));
+        filteredVideos.sort((a, b) => {
+            switch(sortType) {
+                case 'newest': return new Date(b.publishedAt) - new Date(a.publishedAt);
+                case 'oldest': return new Date(a.publishedAt) - new Date(b.publishedAt);
+                case 'title-asc': return a.title.localeCompare(b.title);
+                case 'title-desc': return b.title.localeCompare(a.title);
+                default: return 0;
+            }
+        });
