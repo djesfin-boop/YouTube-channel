@@ -575,20 +575,12 @@
         document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
     }
     
-    window.addEventListener('DOMContentLoaded', () => {
-        initTheme();
-        
-        if (Admin.isLoggedIn()) {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            Admin.updateStats();
-            Admin.displayCache();
-            Admin.displayFavorites();
-        } else {
-            document.getElementById('loginForm').style.display = 'flex';
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-    });
+window.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    document.getElementById('loginForm').style.display = 'flex';
+    document.getElementById('adminPanel').style.display = 'none';
+});
+
     </script>
 </body>
 </html>
