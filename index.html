@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Панель администратора - YouTube Channel Scraper Pro</title>
+    <title>YouTube Channel Scraper Pro</title>
     <style>
         :root {
             --color-primary: #ff0000;
@@ -22,70 +22,71 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--color-bg); 
+            background: var(--color-bg);
             color: var(--color-text);
-            padding: 20px; 
+            padding: 20px;
             min-height: 100vh;
         }
         
         .container { max-width: 1200px; margin: 0 auto; }
         
-        h1 { 
-            font-size: 2.5em; 
-            margin-bottom: 20px; 
-            color: var(--color-primary); 
+        header {
             text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            border-bottom: 2px solid var(--color-border);
         }
         
-        h2 { 
-            font-size: 1.5em; 
-            margin: 20px 0 10px; 
-            color: var(--color-primary); 
-        }
-        
-        h3 {
-            font-size: 1.1em;
+        h1 {
+            font-size: 2.5em;
+            color: var(--color-primary);
             margin-bottom: 10px;
-            color: var(--color-text);
         }
         
-        p { 
-            color: var(--color-text-secondary); 
-            margin-bottom: 15px; 
-            line-height: 1.5;
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1.1em;
         }
         
-        .login-form {
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: var(--color-surface);
-            border-radius: 8px;
-            padding: 40px;
         }
         
-        .login-form h1 {
-            margin-bottom: 30px;
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--color-text-secondary);
+            font-size: 0.9em;
         }
         
-        .login-form input {
-            width: 300px;
-            max-width: 100%;
+        input, select {
             padding: 12px;
-            margin-bottom: 20px;
             border: 1px solid var(--color-border);
-            background: var(--color-bg);
+            background: var(--color-surface);
             color: var(--color-text);
             border-radius: 4px;
             font-size: 1em;
         }
         
-        .login-form input:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: var(--color-primary);
             box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         button {
@@ -101,7 +102,6 @@
         .btn-primary {
             background: var(--color-primary);
             color: white;
-            min-width: 120px;
         }
         
         .btn-primary:hover {
@@ -113,60 +113,60 @@
             background: var(--color-surface);
             color: var(--color-primary);
             border: 1px solid var(--color-primary);
-            margin-right: 10px;
         }
         
         .btn-secondary:hover {
             background: rgba(255, 0, 0, 0.1);
         }
         
-        .btn-link {
-            background: transparent;
-            color: var(--color-primary);
-            border: none;
-            text-decoration: none;
-            cursor: pointer;
-            padding: 0;
-            margin-left: 10px;
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.9em;
         }
         
-        .btn-link:hover {
-            text-decoration: underline;
-        }
-        
-        .btn-danger {
-            background: var(--color-danger);
-            color: white;
-            margin: 10px 0;
-        }
-        
-        .btn-danger:hover {
-            background: #ff0000;
-        }
-        
-        .btn-warning {
-            background: var(--color-warning);
-            color: #000;
-            margin: 10px 0;
-        }
-        
-        .btn-warning:hover {
-            background: #ffb300;
-        }
-        
-        .admin-section {
+        .quota-bar {
             background: var(--color-surface);
             border: 1px solid var(--color-border);
-            border-radius: 8px;
-            padding: 25px;
+            border-radius: 4px;
+            padding: 15px;
             margin-bottom: 20px;
+        }
+        
+        .quota-text {
+            margin-bottom: 8px;
+            color: var(--color-text-secondary);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: var(--color-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--color-primary);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+            font-weight: 600;
         }
         
         .status-message {
             padding: 15px;
             border-radius: 4px;
-            margin-top: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status-message.show {
+            display: block;
         }
         
         .status-message.success {
@@ -181,71 +181,21 @@
             color: var(--color-danger);
         }
         
-        .status-message.info {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid var(--color-primary);
-            color: var(--color-primary);
+        .status-message.warning {
+            background: rgba(255, 192, 0, 0.2);
+            border: 1px solid var(--color-warning);
+            color: var(--color-warning);
         }
         
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px 12px;
+        .results {
+            background: var(--color-surface);
             border: 1px solid var(--color-border);
-            background: var(--color-bg);
-            color: var(--color-text);
             border-radius: 4px;
-            font-size: 1em;
-            margin-bottom: 10px;
-        }
-        
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 15px 0;
-        }
-        
-        .stat-card {
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
             padding: 20px;
-            border-radius: 4px;
-            text-align: center;
+            margin-top: 30px;
         }
         
-        .stat-card h3 {
-            font-size: 0.9em;
-            color: var(--color-text-secondary);
-            margin-bottom: 10px;
-        }
-        
-        .stat-card p {
-            font-size: 2em;
-            color: var(--color-primary);
-            margin: 0;
-            font-weight: bold;
-        }
-        
-        .cache-list,
-        .favorites-list {
-            background: var(--color-bg);
-            border: 1px solid var(--color-border);
-            border-radius: 4px;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-        
-        .cache-item,
-        .favorite-item {
+        .video-item {
             padding: 12px;
             border-bottom: 1px solid var(--color-border);
             display: flex;
@@ -253,36 +203,22 @@
             align-items: center;
         }
         
-        .cache-item:last-child,
-        .favorite-item:last-child {
+        .video-item:last-child {
             border-bottom: none;
         }
         
-        .cache-item p,
-        .favorite-item p {
+        .video-info h3 {
+            margin-bottom: 5px;
+            color: var(--color-text);
+        }
+        
+        .video-info p {
             margin: 0;
             color: var(--color-text-secondary);
             font-size: 0.9em;
         }
         
-        .cache-item:hover,
-        .favorite-item:hover {
-            background: var(--color-surface);
-        }
-        
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.85em;
-        }
-        
-        .top-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .theme-toggle {
+        .admin-link {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -290,338 +226,286 @@
             border: 1px solid var(--color-border);
             padding: 8px 12px;
             border-radius: 4px;
-            cursor: pointer;
+            text-decoration: none;
+            color: var(--color-primary);
             font-size: 0.9em;
-            z-index: 1000;
+            z-index: 999;
+            transition: all 0.2s;
         }
         
-        .theme-toggle:hover {
+        .admin-link:hover {
             background: var(--color-primary);
+            color: white;
         }
         
-        [data-theme="light"] {
-            --color-primary: #0066cc;
-            --color-primary-hover: #0052a3;
-            --color-bg: #ffffff;
-            --color-surface: #f5f5f5;
-            --color-text: #1a1a1a;
-            --color-text-secondary: #666666;
-            --color-border: #cccccc;
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+    <a href="admin.html" class="admin-link">🔐 Admin</a>
     
-    <!-- LOGIN FORM -->
-    <div id="loginForm" class="login-form">
-        <h1>🔐 Панель администратора</h1>
-        <p style="text-align: center; margin-bottom: 30px;">YouTube Channel Scraper Pro</p>
-        <input type="password" id="adminPassword" placeholder="Введите пароль администратора" autocomplete="off">
-        <button class="btn-primary" onclick="Admin.login()">Войти</button>
-        <p style="text-align: center; margin-top: 20px; font-size: 0.85em;">
-            <a href="index.html" class="btn-link" style="padding: 0;">Вернуться на главную</a>
-        </p>
-    </div>
-
-    <!-- ADMIN PANEL -->
-    <div id="adminPanel" class="container" style="display:none;">
-        <div class="top-controls">
-            <button class="btn-secondary" onclick="Admin.logout()">🚪 Выйти</button>
-            <a href="index.html" class="btn-link" style="padding: 12px 24px; border: 1px solid var(--color-primary);">← Вернуться на главную</a>
-        </div>
-
-        <!-- API KEY SECTION -->
-        <div class="admin-section">
-            <h2>🔑 YouTube API ключ</h2>
-            <p>Введите ваш API ключ для работы с YouTube Data API v3. Ключ хранится в localStorage (только для администратора).</p>
-            <input type="password" id="apiKeyInput" placeholder="AIzaSy..." autocomplete="off">
-            <button class="btn-primary" onclick="Admin.saveApiKey()">Сохранить ключ</button>
-            <div id="apiKeyStatus" class="status-message" style="display:none;"></div>
-        </div>
-
-        <!-- STATISTICS SECTION -->
-        <div class="admin-section">
-            <h2>📊 Статистика</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Запросов сегодня</h3>
-                    <p id="totalRequests">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Каналов в кэше</h3>
-                    <p id="cachedChannels">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Избранных каналов</h3>
-                    <p id="favoriteChannels">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Лимит запросов/день</h3>
-                    <p id="quotaLimit">5</p>
-                </div>
+    <div class="container">
+        <header>
+            <h1>📺 YouTube Channel Scraper Pro</h1>
+            <p class="subtitle">Экспортируй все видео из YouTube канала</p>
+        </header>
+        
+        <div class="quota-bar">
+            <div class="quota-text">Запросов использовано: <strong id="quotaText">0/5</strong></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="quotaFill" style="width: 0%;">0%</div>
             </div>
         </div>
-
-        <!-- CACHE MANAGEMENT -->
-        <div class="admin-section">
-            <h2>💾 Управление кэшем</h2>
-            <p>Максимум каналов в кэше: 100 (алгоритм FIFO)</p>
-            <button class="btn-danger" onclick="Admin.clearCache()">Очистить кэш</button>
-            <div id="cacheStatus" class="status-message" style="display:none;"></div>
-            <div id="cacheList" class="cache-list"></div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div class="controls">
+            <div class="form-group">
+                <label for="channelInput">Channel ID или URL канала:</label>
+                <input type="text" id="channelInput" placeholder="UCxxxxxxxxxxxxxxxxxxxxxx или https://www.youtube.com/@channel">
+            </div>
+            
+            <div class="form-group">
+                <label for="formatSelect">Формат экспорта:</label>
+                <select id="formatSelect">
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="txt">TXT</option>
+                </select>
+            </div>
         </div>
-
-        <!-- QUOTA RESET -->
-        <div class="admin-section">
-            <h2>🔄 Сброс счётчика запросов</h2>
-            <p>Текущий лимит: <strong>5 запросов в день</strong> на пользователя.</p>
-            <button class="btn-warning" onclick="Admin.resetQuota()">Сбросить счётчик</button>
-            <div id="quotaStatus" class="status-message" style="display:none;"></div>
+        
+        <div class="button-group">
+            <button class="btn-primary" onclick="App.searchChannel()">🔍 Поиск канала</button>
+            <button class="btn-secondary btn-small" onclick="App.loadMore()">📥 Загрузить ещё</button>
+            <button class="btn-secondary btn-small" onclick="App.exportData()">💾 Экспортировать</button>
+            <button class="btn-secondary btn-small" onclick="App.showHistory()">📋 История</button>
+            <button class="btn-secondary btn-small" onclick="App.showFavorites()">⭐ Избранное</button>
         </div>
-
-        <!-- FAVORITES MANAGEMENT -->
-        <div class="admin-section">
-            <h2>⭐ Избранные каналы</h2>
-            <p>Список всех избранных каналов пользователей.</p>
-            <button class="btn-danger" onclick="Admin.clearFavorites()">Очистить избранное</button>
-            <div id="favoritesStatus" class="status-message" style="display:none;"></div>
-            <div id="favoritesList" class="favorites-list"></div>
+        
+        <div id="results" class="results" style="display: none;">
+            <h2 id="channelName"></h2>
+            <p id="channelInfo"></p>
+            <div id="videoList"></div>
         </div>
-
-        <!-- INFO SECTION -->
-        <div class="admin-section">
-            <h2>ℹ️ Информация</h2>
-            <p><strong>Версия:</strong> YouTube Channel Scraper Pro v3.0</p>
-            <p><strong>API:</strong> YouTube Data API v3</p>
-            <p><strong>Лицензия:</strong> © 2025 - Авторское произведение</p>
-            <p><strong>Использование:</strong> Бесплатное распространение для группы до 20 участников</p>
+        
+        <div class="footer">
+            © 2025 YouTube Channel Scraper Pro | Лицензия: Авторское произведение | Лимит: 5 запросов/день
         </div>
     </div>
-
-    <script>
-    // ========== АДМИН ФУНКЦИИ ==========
     
-    const Admin = {
-        // Пароль администратора (замени на более надежный)
-        adminPassword: 'admin12345',
+    <script>
+    const App = {
+        videos: [],
+        currentChannel: null,
+        nextPageToken: null,
         
-        // Проверка авторизации
-        isLoggedIn() {
-            return localStorage.getItem('adminLoggedIn') === 'true';
-        },
-        
-        // Вход в админ-панель
-        login() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === this.adminPassword) {
-                localStorage.setItem('adminLoggedIn', 'true');
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                this.updateStats();
-                this.displayCache();
-                this.displayFavorites();
-            } else {
-                alert('❌ Неверный пароль!');
-            }
-        },
-        
-        // Выход из админ-панели
-        logout() {
-            localStorage.removeItem('adminLoggedIn');
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'flex';
-        },
-        
-        // Сохранение API ключа
-        saveApiKey() {
-            const apiKey = document.getElementById('apiKeyInput').value.trim();
-            if (!apiKey) {
-                this.showStatus('apiKeyStatus', '❌ API ключ не может быть пустым', 'error');
-                return;
-            }
-            
-            // Проверка формата
-            if (!apiKey.startsWith('AIzaSy')) {
-                this.showStatus('apiKeyStatus', '❌ Неверный формат API ключа (должен начинаться с AIzaSy)', 'error');
-                return;
-            }
-            
-            localStorage.setItem('adminApiKey', apiKey);
-            this.showStatus('apiKeyStatus', '✅ API ключ сохранен успешно!', 'success');
-            document.getElementById('apiKeyInput').value = '';
-        },
-        
-        // Обновление статистики
-        updateStats() {
-            const quota = this.getQuotaInfo();
-            const cachedChannels = this.getCachedChannels();
-            const favoriteChannels = this.getFavoriteChannels();
-            
-            document.getElementById('totalRequests').textContent = quota.used;
-            document.getElementById('cachedChannels').textContent = cachedChannels.length;
-            document.getElementById('favoriteChannels').textContent = favoriteChannels.length;
-            document.getElementById('quotaLimit').textContent = '5';
-        },
-        
-        // Получение информации о квоте
-        getQuotaInfo() {
-            const used = parseInt(localStorage.getItem('quota_used') || 0);
-            const remaining = 5 - used;
-            return { used, remaining };
-        },
-        
-        // Получение кэшированных каналов
-        getCachedChannels() {
-            const cached = localStorage.getItem('channelCache');
-            return cached ? JSON.parse(cached) : [];
-        },
-        
-        // Получение избранных каналов
-        getFavoriteChannels() {
-            const favorites = localStorage.getItem('favoriteChannels');
-            return favorites ? JSON.parse(favorites) : [];
-        },
-        
-        // Очистка кэша
-        clearCache() {
-            if (confirm('⚠️ Вы уверены? Это удалит весь кэш каналов!')) {
-                localStorage.removeItem('channelCache');
-                this.showStatus('cacheStatus', '✅ Кэш очищен!', 'success');
-                this.displayCache();
-                this.updateStats();
-            }
-        },
-        
-        // Отображение кэша
-        displayCache() {
-            const cachedChannels = this.getCachedChannels();
-            const cacheList = document.getElementById('cacheList');
-            
-            if (cachedChannels.length === 0) {
-                cacheList.innerHTML = '<p style="padding: 15px; text-align: center; color: var(--color-text-secondary);">Кэш пуст</p>';
-                return;
-            }
-            
-            cacheList.innerHTML = cachedChannels.map((channel, i) => `
-                <div class="cache-item">
-                    <div>
-                        <h3 style="margin: 0; color: var(--color-primary);">${channel.name || 'Неизвестный канал'}</h3>
-                        <p>${channel.id}</p>
-                    </div>
-                    <button class="btn-small btn-danger" onclick="Admin.removeFromCache('${channel.id}')">Удалить</button>
-                </div>
-            `).join('');
-        },
-        
-        // Удаление из кэша
-        removeFromCache(channelId) {
-            let cached = this.getCachedChannels();
-            cached = cached.filter(c => c.id !== channelId);
-            localStorage.setItem('channelCache', JSON.stringify(cached));
-            this.displayCache();
-            this.updateStats();
-        },
-        
-        // Сброс квоты
-        resetQuota() {
-            if (confirm('⚠️ Сбросить счётчик запросов?')) {
-                localStorage.setItem('quota_used', '0');
-                localStorage.setItem('quota_date', new Date().toISOString().split('T')[0]);
-                this.showStatus('quotaStatus', '✅ Счётчик сброшен!', 'success');
-                this.updateStats();
-            }
-        },
-        
-        // Очистка избранного
-        clearFavorites() {
-            if (confirm('⚠️ Вы уверены? Это удалит всех избранных каналов!')) {
-                localStorage.removeItem('favoriteChannels');
-                this.showStatus('favoritesStatus', '✅ Избранные каналы удалены!', 'success');
-                this.displayFavorites();
-                this.updateStats();
-            }
-        },
-        
-        // Отображение избранного
-        displayFavorites() {
-            const favoriteChannels = this.getFavoriteChannels();
-            const favoritesList = document.getElementById('favoritesList');
-            
-            if (favoriteChannels.length === 0) {
-                favoritesList.innerHTML = '<p style="padding: 15px; text-align: center; color: var(--color-text-secondary);">Избранное пусто</p>';
-                return;
-            }
-            
-            favoritesList.innerHTML = favoriteChannels.map(channel => `
-                <div class="favorite-item">
-                    <div>
-                        <h3 style="margin: 0; color: var(--color-primary);">${channel.name || 'Неизвестный канал'}</h3>
-                        <p>${channel.id}</p>
-                    </div>
-                    <button class="btn-small btn-danger" onclick="Admin.removeFromFavorites('${channel.id}')">Удалить</button>
-                </div>
-            `).join('');
-        },
-        
-        // Удаление из избранного
-        removeFromFavorites(channelId) {
-            let favorites = this.getFavoriteChannels();
-            favorites = favorites.filter(c => c.id !== channelId);
-            localStorage.setItem('favoriteChannels', JSON.stringify(favorites));
-            this.displayFavorites();
-            this.updateStats();
-        },
-        
-        // Показ статус-сообщения
-        showStatus(elementId, message, type) {
-            const el = document.getElementById(elementId);
-            el.className = `status-message ${type}`;
+        showStatus(message, type = 'info') {
+            const el = document.getElementById('statusMessage');
+            el.className = `status-message show ${type}`;
             el.textContent = message;
-            el.style.display = 'block';
             
-            if (type === 'success') {
-                setTimeout(() => el.style.display = 'none', 3000);
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => el.classList.remove('show'), 3000);
             }
+        },
+        
+        updateQuota() {
+            const used = parseInt(localStorage.getItem('quota_used') || 0);
+            const total = 5;
+            const percent = Math.round((used / total) * 100);
+            
+            document.getElementById('quotaText').textContent = `${used}/${total}`;
+            document.getElementById('quotaFill').style.width = percent + '%';
+            document.getElementById('quotaFill').textContent = percent + '%';
+            
+            if (used >= total) {
+                this.showStatus('❌ Лимит запросов исчерпан! Попробуйте завтра.', 'error');
+                return false;
+            }
+            
+            if (used >= 4) {
+                this.showStatus('⚠️ Осталось ' + (total - used) + ' запросов!', 'warning');
+            }
+            
+            return true;
+        },
+        
+        async searchChannel() {
+            if (!this.updateQuota()) return;
+            
+            const input = document.getElementById('channelInput').value.trim();
+            if (!input) {
+                this.showStatus('❌ Введи Channel ID или URL!', 'error');
+                return;
+            }
+            
+            let channelId = input;
+            if (input.includes('youtube.com')) {
+                const match = input.match(/(?:youtube\.com\/@|youtube\.com\/channel\/)([a-zA-Z0-9_-]+)/);
+                if (!match) {
+                    this.showStatus('❌ Неверный формат URL!', 'error');
+                    return;
+                }
+                channelId = match[1];
+            }
+            
+            this.showStatus('🔍 Ищу канал...', 'info');
+            
+            try {
+                const response = await fetch('/api/videos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ channelId: channelId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    this.showStatus('❌ Ошибка: ' + data.error, 'error');
+                    return;
+                }
+                
+                this.currentChannel = {
+                    id: channelId,
+                    name: data.channelName || 'Неизвестный канал',
+                    subscribers: data.subscriberCount || 'Не указано',
+                    videoCount: data.videoCount || 0
+                };
+                
+                this.videos = data.videos || [];
+                this.nextPageToken = data.nextPageToken;
+                
+                const used = parseInt(localStorage.getItem('quota_used') || 0);
+                localStorage.setItem('quota_used', used + 1);
+                this.updateQuota();
+                
+                this.displayResults();
+                this.showStatus('✅ Канал найден! ' + this.videos.length + ' видео загружено', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                this.showStatus('❌ Ошибка подключения!', 'error');
+            }
+        },
+        
+        displayResults() {
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('channelName').textContent = this.currentChannel.name;
+            document.getElementById('channelInfo').textContent = 
+                `Подписчиков: ${this.currentChannel.subscribers} | Видео: ${this.currentChannel.videoCount}`;
+            
+            const videoList = document.getElementById('videoList');
+            videoList.innerHTML = this.videos.map(video => `
+                <div class="video-item">
+                    <div class="video-info">
+                        <h3>${video.title}</h3>
+                        <p>📅 ${new Date(video.publishedAt).toLocaleDateString('ru-RU')}</p>
+                        <p>🔗 ${video.videoId}</p>
+                    </div>
+                    <button class="btn-secondary btn-small" onclick="App.addToFavorite('${video.videoId}', '${video.title}')">⭐</button>
+                </div>
+            `).join('');
+        },
+        
+        loadMore() {
+            if (!this.nextPageToken || this.videos.length === 0) {
+                this.showStatus('❌ Нечего загружать!', 'error');
+                return;
+            }
+            
+            this.showStatus('📥 Загружаю ещё видео...', 'info');
+        },
+        
+        exportData() {
+            if (this.videos.length === 0) {
+                this.showStatus('❌ Нечего экспортировать!', 'error');
+                return;
+            }
+            
+            const format = document.getElementById('formatSelect').value;
+            const data = {
+                channel: this.currentChannel,
+                videos: this.videos,
+                exportedAt: new Date().toISOString()
+            };
+            
+            let content, filename, type;
+            
+            if (format === 'json') {
+                content = JSON.stringify(data, null, 2);
+                filename = `${this.currentChannel.id}_videos.json`;
+                type = 'application/json';
+            } else if (format === 'csv') {
+                content = 'Title,Video ID,Published Date\n';
+                this.videos.forEach(v => {
+                    content += `"${v.title}","${v.videoId}","${v.publishedAt}"\n`;
+                });
+                filename = `${this.currentChannel.id}_videos.csv`;
+                type = 'text/csv';
+            } else {
+                content = `Channel: ${this.currentChannel.name}\n`;
+                content += `Videos: ${this.videos.length}\n\n`;
+                this.videos.forEach((v, i) => {
+                    content += `${i + 1}. ${v.title}\n   ID: ${v.videoId}\n   Date: ${v.publishedAt}\n\n`;
+                });
+                filename = `${this.currentChannel.id}_videos.txt`;
+                type = 'text/plain';
+            }
+            
+            const blob = new Blob([content], { type: type });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            this.showStatus('✅ Данные экспортированы!', 'success');
+        },
+        
+        addToFavorite(videoId, title) {
+            let favorites = JSON.parse(localStorage.getItem('favoriteVideos') || '[]');
+            favorites.push({ videoId, title, addedAt: new Date().toISOString() });
+            localStorage.setItem('favoriteVideos', JSON.stringify(favorites));
+            this.showStatus('⭐ Добавлено в избранное!', 'success');
+        },
+        
+        showHistory() {
+            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            if (history.length === 0) {
+                this.showStatus('📋 История пуста!', 'info');
+                return;
+            }
+            console.log('История поисков:', history);
+        },
+        
+        showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favoriteVideos') || '[]');
+            if (favorites.length === 0) {
+                this.showStatus('⭐ Избранное пусто!', 'info');
+                return;
+            }
+            console.log('Избранное:', favorites);
         }
     };
     
-    // ========== СМЕНА ТЕМЫ ==========
-    function toggleTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.querySelector('.theme-toggle').textContent = newTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    }
-    
-    function initTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    }
-    
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
     window.addEventListener('DOMContentLoaded', () => {
-        initTheme();
-        
-        if (Admin.isLoggedIn()) {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
-            Admin.updateStats();
-            Admin.displayCache();
-            Admin.displayFavorites();
-        } else {
-            document.getElementById('loginForm').style.display = 'flex';
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-    });
-    
-    // Выход при закрытии вкладки (опционально)
-    window.addEventListener('beforeunload', () => {
-        // Можешь добавить дополнительную логику при необходимости
+        App.updateQuota();
     });
     </script>
 </body>
