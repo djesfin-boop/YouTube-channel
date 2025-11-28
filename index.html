@@ -3,376 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Channel Video Exporter</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            max-width: 800px;
-            width: 100%;
-        }
-        
-        h1 {
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .subtitle {
-            color: #718096;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            color: #4a5568;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-        
-        button {
-            flex: 1;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
-        }
-        
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-secondary {
-            background: #48bb78;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #38a169;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(72,187,120,0.3);
-        }
-        
-        .btn-secondary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        #status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 14px;
-            display: none;
-        }
-        
-        #status.info {
-            background: #bee3f8;
-            color: #2c5282;
-            border-left: 4px solid #3182ce;
-        }
-        
-        #status.success {
-            background: #c6f6d5;
-            color: #22543d;
-            border-left: 4px solid #38a169;
-        }
-        
-        #status.error {
-            background: #fed7d7;
-            color: #742a2a;
-            border-left: 4px solid #e53e3e;
-        }
-        
-        .video-list {
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
-            display: none;
-        }
-        
-        .video-item {
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-        
-        .video-title {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 4px;
-        }
-        
-        .video-meta {
-            color: #718096;
-            font-size: 12px;
-        }
-        
-        .info-box {
-            background: #edf2f7;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #4a5568;
-        }
-        
-        .info-box a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .info-box a:hover {
-            text-decoration: underline;
-        }
-        
-        .progress {
-            margin-top: 15px;
-            font-weight: 600;
-            color: #4a5568;
-        }
-    </style>
+    <title>YouTube Channel Scraper Pro</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎥 YouTube Channel Exporter</h1>
-        <p class="subtitle">Экспорт списка всех видео с YouTube-канала</p>
+        <h1>YouTube Channel Scraper Pro</h1>
+        <p class="subtitle">Export all videos from any YouTube channel</p>
+        
+        <div class="quota-banner" id="quotaBanner">
+            <div id="quotaDisplay">Loading...</div>
+            <div class="quota-bar-container"><div class="quota-bar-fill" id="quotaBar"></div></div>
+        </div>
         
         <div class="info-box">
-            <strong>📌 Как получить API ключ:</strong><br>
-            1. Перейдите в <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
-            2. Создайте новый проект или выберите существующий<br>
-            3. Включите YouTube Data API v3<br>
-            4. Создайте API ключ в разделе "Credentials"<br><br>
-            <strong>📺 ID канала:</strong> Можно найти в URL канала (например: UCxxxxxx) или вставить полный URL
+            <strong>How to get API Key:</strong><br>
+            1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
+            2. Create project and enable YouTube Data API v3<br>
+            3. Create API Key in Credentials<br><br>
+            <strong>Limit:</strong> 5 requests per day per user. Reset at 00:00 MSK.
+        </div>
+        
+        <div class="input-group" id="apiKeyGroup">
+            <label>YouTube API Key</label>
+            <input type="password" id="apiKey" placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXX">
         </div>
         
         <div class="input-group">
-            <label for="apiKey">🔑 YouTube API Key</label>
-            <input type="text" id="apiKey" placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXX">
+            <label>Channel ID or URL</label>
+            <input type="text" id="channelInput" placeholder="UCxxxxxx or https://youtube.com/@username">
         </div>
         
-        <div class="input-group">
-            <label for="channelInput">📺 Channel ID или URL канала</label>
-            <input type="text" id="channelInput" placeholder="UCxxxxxx или https://www.youtube.com/@username">
+        <div class="settings-section">
+            <div class="settings-row">
+                <div class="input-group">
+                    <label>Export Format</label>
+                    <select id="exportFormat">
+                        <option value="json">JSON</option>
+                        <option value="csv">CSV</option>
+                    </select>
+                </div>
+            </div>
         </div>
         
         <div class="button-group">
-            <button class="btn-primary" id="loadBtn">Загрузить видео</button>
-            <button class="btn-secondary" id="downloadBtn" disabled>Скачать JSON</button>
+            <button class="btn-primary" id="loadBtn">Load Videos</button>
+            <button class="btn-secondary" id="downloadBtn" disabled>Download</button>
+            <button class="btn-secondary" id="addFavoriteBtn" disabled>Add to Favorites</button>
         </div>
         
         <div id="status"></div>
-        <div id="videoList" class="video-list"></div>
+        <div class="video-list" id="videoList"></div>
+        
+        <div class="sidebar">
+            <div class="panel">
+                <h3>History (last 25)</h3>
+                <div id="historyList"></div>
+            </div>
+            <div class="panel">
+                <h3>Favorites</h3>
+                <div id="favoritesList"></div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            API Key is stored locally. Limit: 5 requests/day.<br>
+            <a href="admin.html">Admin Panel</a>
+        </div>
     </div>
-
-    <script>
-        let allVideos = [];
-
-        document.getElementById('loadBtn').addEventListener('click', loadVideos);
-        document.getElementById('downloadBtn').addEventListener('click', downloadJSON);
-
-        async function loadVideos() {
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const channelInput = document.getElementById('channelInput').value.trim();
-            
-            if (!apiKey || !channelInput) {
-                showStatus('error', '❌ Пожалуйста, заполните все поля');
-                return;
-            }
-
-            allVideos = [];
-            document.getElementById('videoList').style.display = 'none';
-            document.getElementById('downloadBtn').disabled = true;
-            document.getElementById('loadBtn').disabled = true;
-
-            try {
-                showStatus('info', '🔄 Получение ID канала...');
-                const channelId = await getChannelId(apiKey, channelInput);
-                
-                showStatus('info', '🔄 Загрузка видео...');
-                await fetchAllVideos(apiKey, channelId);
-                
-                showStatus('success', `✅ Загружено ${allVideos.length} видео`);
-                displayVideos();
-                document.getElementById('downloadBtn').disabled = false;
-            } catch (error) {
-                showStatus('error', `❌ Ошибка: ${error.message}`);
-            } finally {
-                document.getElementById('loadBtn').disabled = false;
-            }
-        }
-
-        async function getChannelId(apiKey, input) {
-            // Если это уже ID канала (начинается с UC)
-            if (input.startsWith('UC') && input.length === 24) {
-                return input;
-            }
-
-            // Извлекаем username из URL
-            let username = input;
-            if (input.includes('youtube.com/@')) {
-                username = input.split('@')[1].split('/')[0].split('?')[0];
-            } else if (input.includes('youtube.com/c/')) {
-                username = input.split('/c/')[1].split('/')[0].split('?')[0];
-            } else if (input.includes('youtube.com/channel/')) {
-                return input.split('/channel/')[1].split('/')[0].split('?')[0];
-            }
-
-            // Поиск канала по username
-            const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(username)}&key=${apiKey}&maxResults=1`;
-            const searchResponse = await fetch(searchUrl);
-            const searchData = await searchResponse.json();
-
-            if (searchData.error) {
-                throw new Error(searchData.error.message);
-            }
-
-            if (!searchData.items || searchData.items.length === 0) {
-                throw new Error('Канал не найден');
-            }
-
-            return searchData.items[0].id.channelId;
-        }
-
-        async function fetchAllVideos(apiKey, channelId) {
-            let pageToken = '';
-            let pageCount = 0;
-
-            do {
-                const url = `https://www.googleapis.com/youtube/v3/search?key=${apiKey}&channelId=${channelId}&part=snippet&order=date&maxResults=50&type=video${pageToken ? '&pageToken=' + pageToken : ''}`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-
-                if (data.items) {
-                    allVideos = allVideos.concat(data.items.map(item => ({
-                        videoId: item.id.videoId,
-                        title: item.snippet.title,
-                        description: item.snippet.description,
-                        publishedAt: item.snippet.publishedAt,
-                        thumbnail: item.snippet.thumbnails.high.url,
-                        url: `https://www.youtube.com/watch?v=${item.id.videoId}`
-                    })));
-                }
-
-                pageToken = data.nextPageToken;
-                pageCount++;
-                
-                showStatus('info', `🔄 Загружено ${allVideos.length} видео... (страница ${pageCount})`);
-            } while (pageToken);
-        }
-
-        function displayVideos() {
-            const videoList = document.getElementById('videoList');
-            videoList.innerHTML = '';
-            
-            allVideos.forEach(video => {
-                const videoItem = document.createElement('div');
-                videoItem.className = 'video-item';
-                videoItem.innerHTML = `
-                    <div class="video-title">${video.title}</div>
-                    <div class="video-meta">
-                        📅 ${new Date(video.publishedAt).toLocaleDateString('ru-RU')} | 
-                        🔗 <a href="${video.url}" target="_blank">${video.videoId}</a>
-                    </div>
-                `;
-                videoList.appendChild(videoItem);
-            });
-            
-            videoList.style.display = 'block';
-        }
-
-        function downloadJSON() {
-            const dataStr = JSON.stringify(allVideos, null, 2);
-            const blob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `youtube_videos_${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function showStatus(type, message) {
-            const status = document.getElementById('status');
-            status.className = type;
-            status.textContent = message;
-            status.style.display = 'block';
-        }
-    </script>
+    
+    <script src="js/storage.js"></script>
+    <script src="js/cache.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
