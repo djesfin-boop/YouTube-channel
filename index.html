@@ -3,75 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Channel Scraper Pro</title>
+    <title>YouTube Экспортер Видео Pro</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>YouTube Channel Scraper Pro</h1>
-        <p class="subtitle">Export all videos from any YouTube channel</p>
+        <h1>YouTube Экспортер Видео Pro</h1>
+        <p class="subtitle">Экспортируйте все видео с любого YouTube канала</p>
         
         <div class="quota-banner" id="quotaBanner">
-            <div id="quotaDisplay">Loading...</div>
+            <div id="quotaDisplay">Загрузка...</div>
             <div class="quota-bar-container"><div class="quota-bar-fill" id="quotaBar"></div></div>
         </div>
-        
+
         <div class="info-box">
-            <strong>How to get API Key:</strong><br>
-            1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
-            2. Create project and enable YouTube Data API v3<br>
-            3. Create API Key in Credentials<br><br>
-            <strong>Limit:</strong> 5 requests per day per user. Reset at 00:00 MSK.
+            <h3>Как это работает:</h3>
+            <ol>
+                <li>Введите URL или ID YouTube канала</li>
+                <li>Нажмите "Загрузить видео" для получения списка видео</li>
+                <li>Скачайте результаты в формате JSON или CSV</li>
+            </ol>
+            <p class="note">Ограничение: 5 запросов в день. Счётчик сбрасывается в полночь.</p>
         </div>
-        
-        <div class="input-group" id="apiKeyGroup">
-            <label>YouTube API Key</label>
-            <input type="password" id="apiKey" placeholder="AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXX">
+
+        <div class="input-section">
+            <label for="channelInput">URL или ID канала:</label>
+            <input type="text" id="channelInput" placeholder="Например: @MrBeast или UCX6OQ3DkcsbYNE6H8uQQuVA">
+            <button id="loadBtn" onclick="loadVideos()">Загрузить видео</button>
         </div>
-        
-        <div class="input-group">
-            <label>Channel ID or URL</label>
-            <input type="text" id="channelInput" placeholder="UCxxxxxx or https://youtube.com/@username">
-        </div>
-        
-        <div class="settings-section">
-            <div class="settings-row">
-                <div class="input-group">
-                    <label>Export Format</label>
-                    <select id="exportFormat">
-                        <option value="json">JSON</option>
-                        <option value="csv">CSV</option>
-                    </select>
-                </div>
+
+        <div id="status" class="status"></div>
+
+        <div id="results" class="results-section" style="display:none;">
+            <h2>Результаты <span id="videoCount"></span></h2>
+            
+            <div class="export-buttons">
+                <button onclick="downloadJSON()">Скачать JSON</button>
+                <button onclick="downloadCSV()">Скачать CSV</button>
+                <button onclick="addToFavorites()">Добавить в избранное</button>
             </div>
+
+            <div class="video-list" id="videoList"></div>
         </div>
-        
-        <div class="button-group">
-            <button class="btn-primary" id="loadBtn">Load Videos</button>
-            <button class="btn-secondary" id="downloadBtn" disabled>Download</button>
-            <button class="btn-secondary" id="addFavoriteBtn" disabled>Add to Favorites</button>
+
+        <div class="favorites-section" id="favoritesSection">
+            <h2>Избранные каналы</h2>
+            <div id="favoritesList"></div>
         </div>
-        
-        <div id="status"></div>
-        <div class="video-list" id="videoList"></div>
-        
-        <div class="sidebar">
-            <div class="panel">
-                <h3>History (last 25)</h3>
-                <div id="historyList"></div>
-            </div>
-            <div class="panel">
-                <h3>Favorites</h3>
-                <div id="favoritesList"></div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            API Key is stored locally. Limit: 5 requests/day.<br>
-            <a href="admin.html">Admin Panel</a>
-        </div>
+
+        <footer>
+            <p>YouTube Экспортер Видео Pro 3.0</p>
+            <a href="admin.html">Панель администратора</a>
+        </footer>
     </div>
-    
+
     <script src="js/storage.js"></script>
     <script src="js/cache.js"></script>
     <script src="js/app.js"></script>
