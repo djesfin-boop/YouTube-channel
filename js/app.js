@@ -3,6 +3,8 @@
 // YouTube Channel Scraper Pro 3.0
 // ==========================================
 
+const BACKEND_URL = '/api/videos.js';
+
 const App = {
     allVideos: [],
     currentChannel: null,
@@ -51,14 +53,13 @@ const App = {
         document.getElementById('loadBtn').disabled = true;
         
         try {
-            // ✅ ИСПРАВЛЕНО: Получаем Channel ID локально (без API)
             const channelId = this.extractChannelId(channelInput);
             if (!channelId) {
                 this.showStatus('error', '❌ Неверный Channel ID или URL');
                 return;
             }
             
-            // ✅ ИСПРАВЛЕНО: Проверяем кэш
+            // Проверяем кэш
             const cached = Cache.get(channelId);
             if (cached && cached.length > 0) {
                 this.allVideos = cached;
@@ -68,7 +69,7 @@ const App = {
                 return;
             }
             
-            // ✅ ИСПРАВЛЕНО: Вызываем BACKEND, а не YouTube API напрямую!
+            // Вызываем BACKEND
             this.showStatus('info', '🔄 Загрузка видео...');
             await this.fetchAllVideosFromBackend(channelId);
             
@@ -94,59 +95,42 @@ const App = {
         }
     },
     
-    // ✅ НОВАЯ ФУНКЦИЯ: Вызов backend вместо YouTube API
-    async function fetchVideos() {
-    const quota = getQuotaInfo();
-    if (quota.remaining <= 0) {
-        showStatus('❌ Лимит запросов исчерпан. Приходите завтра!', 'error');
-        return;
-    }
+    async fetchAllVideosFromBackend(channelId) {
+        let allVideos = [];
+        let pageToken = null;
+        
+        do {
+            const response = await fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channelId: channelId, pageToken: pageToken })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Ошибка загрузки');
+            }
+            
+            const data = await response.json();
+            
+            if (data.videos && data.videos.length > 0) {
+                allVideos = allVideos.concat(data.videos);
+            }
+            
+            if (data.channel && !this.currentChannel) {
+                this.currentChannel = {
+                    id: channelId,
+                    name: data.channel.name || channelId
+                };
+            }
+            
+            pageToken = data.nextPageToken;
+            
+        } while (pageToken);
+        
+        this.allVideos = allVideos;
+    },
     
-    const channelInput = document.getElementById('channelId').value.trim();
-    if (!channelInput) {
-        showStatus('❌ Заполните Channel ID или URL', 'error');
-        return;
-    }
-    
-    try {
-        const channelId = extractChannelId(channelInput);
-        if (!channelId) {
-            showStatus('❌ Неверный Channel ID или URL', 'error');
-            return;
-        }
-        
-        showStatus('🔄 Загрузка видео...', 'info');
-        document.querySelector('.btn-primary').disabled = true;
-        
-        // ✅ ВЫЗЫВАЕМ BACKEND, А НЕ YOUTUBE API!
-        const response = await fetch(BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ channelId: channelId })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Ошибка загрузки');
-        }
-        
-        const data = await response.json();
-        allVideos = data.videos || [];
-        channelData = data.channel || {};
-        
-        incrementQuota();
-        displayResults();
-        showStatus(`✅ Загружено ${allVideos.length} видео!`, 'success');
-        
-    } catch (error) {
-        showStatus(`❌ Ошибка: ${error.message}`, 'error');
-    } finally {
-        document.querySelector('.btn-primary').disabled = false;
-    }
-}
-
-    
-    // ✅ Извлечение Channel ID из разных форматов
     extractChannelId(input) {
         // Уже Channel ID?
         if (input.startsWith('UC') && input.length === 24) return input;
@@ -188,7 +172,6 @@ const App = {
         document.getElementById('noResults').style.display = 'none';
     },
     
-    // ✅ Защита от XSS
     escapeHtml(text) {
         const map = {
             '&': '&amp;',
@@ -264,6 +247,24 @@ const App = {
         setTimeout(() => document.getElementById('statusMessage').classList.remove('show'), 3000);
     },
     
+    loadHistory() {
+        const history = Storage.getHistory();
+        const el = document.getElementById('historyList');
+        if (!el) return;
+        
+        if (history.length === 0) {
+            el.innerHTML = '<p style="color: var(--color-text-secondary);">Нет истории</p>';
+            return;
+        }
+        
+        el.innerHTML = history.map(h => `
+            <div class="history-item" onclick="App.loadFromHistory('${h.id}')">
+                <span>${h.name}</span>
+                <small>${h.videoCount} видео</small>
+            </div>
+        `).join('');
+    },
+    
     loadFromHistory(channelId) {
         document.getElementById('channelInput').value = channelId;
     },
@@ -318,130 +319,3 @@ const App = {
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
-// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-
-function showStatus(message, type = 'info') {
-    const el = document.getElementById('statusMessage');
-    if (!el) return;
-    
-    el.className = `status-message show ${type}`;
-    el.textContent = message;
-    
-    // Автоскрыть через 3 сек для успеха
-    if (type === 'success') {
-        setTimeout(() => el.classList.remove('show'), 3000);
-    }
-}
-
-function displayResults() {
-    const statsContainer = document.getElementById('statsContainer');
-    const videosContainer = document.getElementById('videosContainer');
-    const noResults = document.getElementById('noResults');
-    
-    if (!allVideos || allVideos.length === 0) {
-        statsContainer.style.display = 'none';
-        videosContainer.style.display = 'none';
-        noResults.style.display = 'block';
-        return;
-    }
-    
-    document.getElementById('totalVideos').textContent = allVideos.length;
-    document.getElementById('channelName').textContent = currentChannel.name || '-';
-    
-    statsContainer.style.display = 'grid';
-    videosContainer.style.display = 'block';
-    noResults.style.display = 'none';
-    
-    filterAndSortVideos();
-}
-
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-function exportData(format) {
-    if (!allVideos || allVideos.length === 0) {
-        showStatus('❌ Нет данных для экспорта', 'error');
-        return;
-    }
-    
-    let content, filename, type;
-    
-    switch(format) {
-        case 'json':
-            content = JSON.stringify({
-                channel: currentChannel,
-                videos: allVideos,
-                exportDate: new Date().toISOString()
-            }, null, 2);
-            filename = 'youtube-videos.json';
-            type = 'application/json';
-            break;
-        
-        case 'csv':
-            content = 'Номер,Название,URL,Дата,ID\n';
-            allVideos.forEach((v, i) => {
-                content += `"${i + 1}","${v.title.replace(/"/g, '""')}","${v.url}","${v.publishedAt}","${v.id}"\n`;
-            });
-            filename = 'youtube-videos.csv';
-            type = 'text/csv';
-            break;
-        
-        case 'txt':
-            content = `Канал: ${currentChannel.name}\n`;
-            content += `Видео: ${allVideos.length}\n`;
-            content += `Дата: ${new Date().toLocaleString('ru-RU')}\n\n`;
-            allVideos.forEach((v, i) => {
-                content += `${i + 1}. ${v.title}\n${v.url}\n${v.publishedAt}\n\n`;
-            });
-            filename = 'youtube-videos.txt';
-            type = 'text/plain';
-            break;
-        
-        default: return;
-    }
-    
-    const blob = new Blob([content], { type });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-    
-    showStatus(`✅ Файл ${filename} скачан!`, 'success');
-}
-
-function copyAllLinks() {
-    if (!allVideos || allVideos.length === 0) return;
-    
-    const links = allVideos.map((v, i) => `${i + 1}. ${v.title}\n${v.url}`).join('\n\n');
-    navigator.clipboard.writeText(links).then(() => {
-        showStatus('✅ Ссылки скопированы в буфер!', 'success');
-    });
-}
-
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showStatus('✅ Скопировано!', 'success');
-    });
-}
-
-function showApiHelp() {
-    alert(`ℹ️ О ПРИЛОЖЕНИИ:\n\n🔐 БЕЗОПАСНОСТЬ: API ключ хранится на сервере (не видим в браузере)\n\n📊 КВОТЫ:\n• 5 запросов в день на пользователя\n• 10,000 единиц в день (глобальный лимит)\n• Сброс квоты в 00:00 MSK\n\n⚠️ ЛИЦЕНЗИЯ:\n• © 2025 YouTube Channel Scraper Pro\n• Авторское произведение\n• Бесплатное распространение для группы\n• При коммерциализации требуется согласование`);
-}
-
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('sortSelect').value = 'newest';
-    filterAndSortVideos();
-}
