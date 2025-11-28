@@ -95,40 +95,56 @@ const App = {
     },
     
     // ✅ НОВАЯ ФУНКЦИЯ: Вызов backend вместо YouTube API
-    async fetchAllVideosFromBackend(channelId, pageToken = '') {
-        try {
-            const response = await fetch('/api/videos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    channelId: channelId,
-                    pageToken: pageToken 
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Ошибка загрузки');
-            }
-            
-            const data = await response.json();
-            
-            if (data.videos) {
-                this.allVideos = this.allVideos.concat(data.videos);
-                this.showStatus('info', `📹 Загружено ${this.allVideos.length} видео...`);
-            }
-            
-            // ✅ Если есть nextPageToken, грузим дальше
-            if (data.nextPageToken) {
-                await this.fetchAllVideosFromBackend(channelId, data.nextPageToken);
-            }
-            
-            return data;
-            
-        } catch (error) {
-            throw new Error(`Backend ошибка: ${error.message}`);
+    async function fetchVideos() {
+    const quota = getQuotaInfo();
+    if (quota.remaining <= 0) {
+        showStatus('❌ Лимит запросов исчерпан. Приходите завтра!', 'error');
+        return;
+    }
+    
+    const channelInput = document.getElementById('channelId').value.trim();
+    if (!channelInput) {
+        showStatus('❌ Заполните Channel ID или URL', 'error');
+        return;
+    }
+    
+    try {
+        const channelId = extractChannelId(channelInput);
+        if (!channelId) {
+            showStatus('❌ Неверный Channel ID или URL', 'error');
+            return;
         }
-    },
+        
+        showStatus('🔄 Загрузка видео...', 'info');
+        document.querySelector('.btn-primary').disabled = true;
+        
+        // ✅ ВЫЗЫВАЕМ BACKEND, А НЕ YOUTUBE API!
+        const response = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channelId: channelId })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка загрузки');
+        }
+        
+        const data = await response.json();
+        allVideos = data.videos || [];
+        channelData = data.channel || {};
+        
+        incrementQuota();
+        displayResults();
+        showStatus(`✅ Загружено ${allVideos.length} видео!`, 'success');
+        
+    } catch (error) {
+        showStatus(`❌ Ошибка: ${error.message}`, 'error');
+    } finally {
+        document.querySelector('.btn-primary').disabled = false;
+    }
+}
+
     
     // ✅ Извлечение Channel ID из разных форматов
     extractChannelId(input) {
