@@ -321,11 +321,27 @@
     }
 
     function extractChannelId(input) {
-        const urlMatch = input.match(/(?:youtube\\.com\\/channel\\/|youtu\\.be\\/)([a-zA-Z0-9_-]+)/);
-        if (urlMatch) return urlMatch[1];
-        if (/^UC[a-zA-Z0-9_-]{22}$/.test(input)) return input;
-        return null;
+    // Уже Channel ID?
+    if (input.startsWith('UC') && input.length === 24) return input;
+    
+    // youtube.com/@username
+    if (input.includes('youtube.com/@')) {
+        return input.split('@')[1].split('/')[0].split('?')[0];
     }
+    
+    // youtube.com/c/username
+    if (input.includes('youtube.com/c/')) {
+        return input.split('/c/')[1].split('/')[0].split('?')[0];
+    }
+    
+    // youtube.com/channel/UC...
+    if (input.includes('youtube.com/channel/')) {
+        return input.split('/channel/')[1].split('/')[0].split('?')[0];
+    }
+    
+    return null;
+}
+
     function toggleTheme() {
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme') || 'dark';
