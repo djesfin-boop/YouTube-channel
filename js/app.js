@@ -318,3 +318,130 @@ const App = {
 };
 
 document.addEventListener('DOMContentLoaded', () => App.init());
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+
+function showStatus(message, type = 'info') {
+    const el = document.getElementById('statusMessage');
+    if (!el) return;
+    
+    el.className = `status-message show ${type}`;
+    el.textContent = message;
+    
+    // Автоскрыть через 3 сек для успеха
+    if (type === 'success') {
+        setTimeout(() => el.classList.remove('show'), 3000);
+    }
+}
+
+function displayResults() {
+    const statsContainer = document.getElementById('statsContainer');
+    const videosContainer = document.getElementById('videosContainer');
+    const noResults = document.getElementById('noResults');
+    
+    if (!allVideos || allVideos.length === 0) {
+        statsContainer.style.display = 'none';
+        videosContainer.style.display = 'none';
+        noResults.style.display = 'block';
+        return;
+    }
+    
+    document.getElementById('totalVideos').textContent = allVideos.length;
+    document.getElementById('channelName').textContent = currentChannel.name || '-';
+    
+    statsContainer.style.display = 'grid';
+    videosContainer.style.display = 'block';
+    noResults.style.display = 'none';
+    
+    filterAndSortVideos();
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function exportData(format) {
+    if (!allVideos || allVideos.length === 0) {
+        showStatus('❌ Нет данных для экспорта', 'error');
+        return;
+    }
+    
+    let content, filename, type;
+    
+    switch(format) {
+        case 'json':
+            content = JSON.stringify({
+                channel: currentChannel,
+                videos: allVideos,
+                exportDate: new Date().toISOString()
+            }, null, 2);
+            filename = 'youtube-videos.json';
+            type = 'application/json';
+            break;
+        
+        case 'csv':
+            content = 'Номер,Название,URL,Дата,ID\n';
+            allVideos.forEach((v, i) => {
+                content += `"${i + 1}","${v.title.replace(/"/g, '""')}","${v.url}","${v.publishedAt}","${v.id}"\n`;
+            });
+            filename = 'youtube-videos.csv';
+            type = 'text/csv';
+            break;
+        
+        case 'txt':
+            content = `Канал: ${currentChannel.name}\n`;
+            content += `Видео: ${allVideos.length}\n`;
+            content += `Дата: ${new Date().toLocaleString('ru-RU')}\n\n`;
+            allVideos.forEach((v, i) => {
+                content += `${i + 1}. ${v.title}\n${v.url}\n${v.publishedAt}\n\n`;
+            });
+            filename = 'youtube-videos.txt';
+            type = 'text/plain';
+            break;
+        
+        default: return;
+    }
+    
+    const blob = new Blob([content], { type });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    showStatus(`✅ Файл ${filename} скачан!`, 'success');
+}
+
+function copyAllLinks() {
+    if (!allVideos || allVideos.length === 0) return;
+    
+    const links = allVideos.map((v, i) => `${i + 1}. ${v.title}\n${v.url}`).join('\n\n');
+    navigator.clipboard.writeText(links).then(() => {
+        showStatus('✅ Ссылки скопированы в буфер!', 'success');
+    });
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showStatus('✅ Скопировано!', 'success');
+    });
+}
+
+function showApiHelp() {
+    alert(`ℹ️ О ПРИЛОЖЕНИИ:\n\n🔐 БЕЗОПАСНОСТЬ: API ключ хранится на сервере (не видим в браузере)\n\n📊 КВОТЫ:\n• 5 запросов в день на пользователя\n• 10,000 единиц в день (глобальный лимит)\n• Сброс квоты в 00:00 MSK\n\n⚠️ ЛИЦЕНЗИЯ:\n• © 2025 YouTube Channel Scraper Pro\n• Авторское произведение\n• Бесплатное распространение для группы\n• При коммерциализации требуется согласование`);
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('sortSelect').value = 'newest';
+    filterAndSortVideos();
+}
